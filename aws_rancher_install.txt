@@ -21,7 +21,7 @@ helm upgrade --install \
 kubectl get service ingress-nginx-controller --namespace=ingress-nginx
 
 	Install the Rancher Helm Chart
-https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster#install-the-rancher-helm-chart
+(chủ yếu tham khảo docs: https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster#install-the-rancher-helm-chart)
 
 	Add the Helm Chart Repository (stable hoặc latest)
 helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
@@ -65,3 +65,4 @@ kubectl -n cattle-system get deploy rancher
 
 
 kubectl get ingress rancher -n cattle-system -o yaml
+
