@@ -1,0 +1,67 @@
+(chủ yếu tham khảo docs: https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster/rancher-on-amazon-eks)
+
+	Install an Ingress
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm search repo ingress-nginx -l
+
+(https://github.com/kubernetes/ingress-nginx#supported-versions-table)
+(k8s version: 1.33 
+ -> Ingress-NGINX version: v1.13.0/v1.13.1/v1.13.2 
+ -> Helm Chart Version:    v4.13.0/v4.13.1/v4.13.2)
+
+helm upgrade --install \
+  ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --set controller.service.type=LoadBalancer \
+  --version 4.13.0 \
+  --create-namespace
+
+	Get Load Balancer IP
+kubectl get service ingress-nginx-controller --namespace=ingress-nginx
+
+	Install the Rancher Helm Chart
+https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster#install-the-rancher-helm-chart
+
+	Add the Helm Chart Repository (stable hoặc latest)
+helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+
+	Create a Namespace for Rancher
+kubectl create namespace cattle-system
+
+	Install cert-manager (Rancher-generated TLS certificate)
+# Add the Jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+# Update your local Helm chart repository cache
+helm repo update
+# Install the cert-manager Helm chart
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --set crds.enabled=true
+
+(
+for verify:
+kubectl get pods --namespace cert-manager
+	NAME                                       READY   STATUS    RESTARTS   AGE
+	cert-manager-5c6866597-zw7kh               1/1     Running   0          2m
+	cert-manager-cainjector-577f6d9fd7-tr77l   1/1     Running   0          2m
+	cert-manager-webhook-787858fcdb-nlzsq      1/1     Running   0          2m
+)
+
+	Install Rancher with Helm and Your Chosen Certificate Option (Rancher-generated Certificates)
+(nếu ở trên chọn stable thì rancher-stable, latest thì rancher-latest)
+helm install rancher rancher-stable/rancher \
+  --namespace cattle-system \
+  --set hostname=rancher.12.34.56.78.sslip.io \
+  --set bootstrapPassword=admin \
+  --set ingress.ingressClassName=nginx
+
+Wait for Rancher to be rolled out:
+kubectl -n cattle-system rollout status deploy/rancher
+
+Check the status of the deployment:
+kubectl -n cattle-system get deploy rancher
+
+
+kubectl get ingress rancher -n cattle-system -o yaml
